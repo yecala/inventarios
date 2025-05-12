@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -119,5 +120,30 @@ public class ProductoControlador {
             response.setSuccess(false);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+    }
+
+    @DeleteMapping("/productos/{id}")
+    public ResponseEntity<ApiResponse<Boolean>> eliminarProducto(@PathVariable int id){
+        try {
+            Producto productoEliminar = this.servicio.buscarProductoPorId(id);
+            if(productoEliminar!=null){
+                this.servicio.eliminarProductoPorId(id);
+                ApiResponse<Boolean> response = new ApiResponse<>();
+                response.setData(true);
+                response.setSuccess(true);
+                return ResponseEntity.ok(response);
+            }else{
+                throw new RecursoNoEncontradoExcepcion("No se encontro el producto con el ID " + id);
+            }
+        } catch (Exception e) {
+            logger.error("Error al eliminar producto", e);
+            ApiResponse<Boolean> response = new ApiResponse<>();
+            response.setData(false);
+            response.setError("No se pudo eliminar el producto.");
+            response.setSuccess(false);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+
+
     }
 }
