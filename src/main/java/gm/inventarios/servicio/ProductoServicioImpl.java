@@ -35,8 +35,8 @@ public class ProductoServicioImpl implements IProductoServicio{
     }
 
     @Override
-    public void guardarProducto(Producto producto) {
-        this.productoRepositorio.save(producto); //Crea y actualiza dependiendo del valor del id
+    public Producto guardarProducto(Producto producto) {
+        return this.productoRepositorio.save(producto); //Crea y actualiza dependiendo del valor del id
     }
 
     @Override

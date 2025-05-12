@@ -11,9 +11,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import gm.inventarios.dto.ApiResponse;
+import gm.inventarios.excepcion.RecursoNoEncontradoExcepcion;
 import gm.inventarios.modelos.Producto;
 import gm.inventarios.servicio.IProductoServicio;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PutMapping;
+
+
 
 
 @RestController
@@ -46,5 +53,71 @@ public class ProductoControlador {
         }
     }
 
+    @PostMapping("/productos")
+    public ResponseEntity<ApiResponse<Producto>> agregarProducto(@RequestBody Producto producto) {
+        try {
+            logger.info("Producto a agregar: ", producto);
+            Producto productoNuevo = this.servicio.guardarProducto(producto);
+            ApiResponse<Producto> response = new ApiResponse<>();
+            response.setData(productoNuevo);
+            response.setSuccess(true);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error al guardar producto", e);
+            ApiResponse<Producto> response = new ApiResponse<>();
+            response.setError("No se pudo guardar el producto.");
+            response.setSuccess(false);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     
+    }
+
+    @GetMapping("/productos/{id}")
+    public ResponseEntity<ApiResponse<Producto>> obtenerProductosPorId(@PathVariable int id) {
+        try {
+            Producto producto = this.servicio.buscarProductoPorId(id);
+            if(producto!=null){
+                ApiResponse<Producto> response = new ApiResponse<>();
+                response.setData(producto);
+                response.setSuccess(true);
+                return ResponseEntity.ok(response);
+            }else{
+               throw new RecursoNoEncontradoExcepcion("No se encontro el producto con el ID " + id);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error al obtener producto", e);
+            ApiResponse<Producto> response = new ApiResponse<>();
+            response.setError("No se pudo obtener el producto.");
+            response.setSuccess(false);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+    
+
+    @PutMapping("/productos/{id}")
+    public ResponseEntity<ApiResponse<Producto>>  actualizarProducto(@PathVariable int id, @RequestBody Producto producto) {
+        try {
+            Producto productoEditar = this.servicio.buscarProductoPorId(id);
+            if(productoEditar!=null){
+                productoEditar.setDescripcion(producto.getDescripcion());
+                productoEditar.setPrecio(producto.getPrecio());
+                productoEditar.setExistencia(producto.getExistencia());
+                this.servicio.guardarProducto(productoEditar);
+        
+                ApiResponse<Producto> response = new ApiResponse<>();
+                response.setData(productoEditar);
+                response.setSuccess(true);
+                return ResponseEntity.ok(response);
+            }else{
+                throw new RecursoNoEncontradoExcepcion("No se encontro el producto con el ID " + id);
+            }
+        } catch (Exception e) {
+            logger.error("Error al editar producto", e);
+            ApiResponse<Producto> response = new ApiResponse<>();
+            response.setError("No se pudo editar el producto.");
+            response.setSuccess(false);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
 }
